@@ -58,7 +58,7 @@ class CustomerService(
             val jwt = jwtService.generateToken(customerDetails)
             ResponseEntity.ok(jwt)
         } catch (e: UsernameNotFoundException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body("User $username not found.")
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body("${e.message}")
         } catch (e: Exception) {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login.")
         }

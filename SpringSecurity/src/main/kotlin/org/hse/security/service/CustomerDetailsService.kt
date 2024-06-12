@@ -13,5 +13,5 @@ class CustomerDetailsService(
 
     override fun loadUserByUsername(username: String): UserDetails =
         customerRepository.findByName(username)
-            ?: throw UsernameNotFoundException("User $username not found")
+            ?: throw UsernameNotFoundException("User $username not found.")
 }
