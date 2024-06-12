@@ -6,6 +6,7 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -47,17 +48,20 @@ class CustomerService(
     }
 
     fun loginCustomer(username: String, password: String): ResponseEntity<String> {
-        val customerDetails: UserDetails = try {
-            customerDetailsService.loadUserByUsername(username)
+        return try {
+            val customerDetails: UserDetails = customerDetailsService.loadUserByUsername(username)
+
+            if (!passwordEncoder.matches(password, customerDetails.password)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid password.")
+            }
+
+            val jwt = jwtService.generateToken(customerDetails)
+            ResponseEntity.ok(jwt)
+        } catch (e: UsernameNotFoundException) {
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body("User $username not found.")
         } catch (e: Exception) {
-            throw RuntimeException("User not found.")
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login.")
         }
-
-        if (!passwordEncoder.matches(password, customerDetails.password)) {
-            throw RuntimeException("Invalid password.")
-        }
-
-        val jwt = jwtService.generateToken(customerDetails)
-        return ResponseEntity.ok(jwt)
     }
+
 }
